@@ -6,13 +6,19 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import com.parse.FindCallback;
+import com.parse.GetCallback;
 import com.parse.ParseException;
 import com.parse.ParseInstallation;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 import com.shashank.sony.fancytoastlib.FancyToast;
+
+import java.util.List;
 
 public class SignUp extends AppCompatActivity {
 
@@ -21,7 +27,9 @@ public class SignUp extends AppCompatActivity {
     private EditText editText3;
     private EditText editText4;
     private EditText editText5;
-    private Button btnSave;
+    private Button getAll;
+    private TextView getData;
+    private String allKickBoxers;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +44,51 @@ public class SignUp extends AppCompatActivity {
         editText3 = findViewById(R.id.editText3);
         editText4 = findViewById(R.id.editText4);
         editText5 = findViewById(R.id.editText5);
+        getData = findViewById(R.id.getData);
+        getAll = findViewById(R.id.getAllButton);
+
+        getData.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ParseQuery<ParseObject> parseQuery = ParseQuery.getQuery("kickBoxer");
+                parseQuery.getInBackground("ncuPI9FQhv", new GetCallback<ParseObject>() {
+                    @Override
+                    public void done(ParseObject object, ParseException e) {
+                        if(object!=null && e==null) {
+                            getData.setText(object.get("name").toString() + " - " + "Punch Power: " +
+                                    object.get("punchPower").toString());
+                        } else {
+                            FancyToast.makeText(SignUp.this, e.getMessage() + "Data Fetch Failed",Toast.LENGTH_SHORT,FancyToast.ERROR,false);
+                        }
+                    }
+                });
+            }
+        });
+
+        getAll.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                allKickBoxers = "";
+                ParseQuery<ParseObject> parseAll = ParseQuery.getQuery("kickBoxer");
+                parseAll.findInBackground(new FindCallback<ParseObject>() {
+                    @Override
+                    public void done(List<ParseObject> objects, ParseException e) {
+                        if(e==null) {
+                            if(objects.size()>0) {
+                                for(ParseObject kickBoxer : objects) {
+                                    allKickBoxers = allKickBoxers + kickBoxer.get("name") + "\n";
+                                }
+                                FancyToast.makeText(SignUp.this, allKickBoxers, FancyToast.LENGTH_LONG, FancyToast.SUCCESS, false).show();
+                            } else {
+                                FancyToast.makeText(SignUp.this, e.getMessage(), Toast.LENGTH_SHORT, FancyToast.ERROR, false).show();
+                            }
+                        } else {
+                            FancyToast.makeText(SignUp.this, e.getMessage(), Toast.LENGTH_SHORT, FancyToast.ERROR, false).show();
+                        }
+                    }
+                });
+            }
+        });
     }
 
     public void saveButtonClicked(View view) {
